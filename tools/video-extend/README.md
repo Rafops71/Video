@@ -75,6 +75,22 @@ repository.
 
 ---
 
+## Which route to use
+
+**Guided (works).** Generation happens in your browser on the Hugging Face Space,
+where the free GPU allowance actually applies. This page gives you the exact
+starting frame and then joins the generated clips back onto your original,
+preserving resolution, frame rate and audio.
+
+**Automatic (usually blocked).** Calls the same model from code. Convenient when
+it works, but Hugging Face throttles API access to its free GPUs far more
+aggressively than browser use. In practice it returns *"quota exceeded"* almost
+immediately even with a valid token and a full daily allowance — confirmed in
+use and widely reported by others ([1](https://discuss.huggingface.co/t/exceeded-gpu-quota-via-api-but-fine-interactively/105699),
+[2](https://discuss.huggingface.co/t/incapable-to-use-zerogpu-resource-via-hugging-face-pro-quota-with-gradio-api/132840)).
+**UNVERIFIED:** Hugging Face has not published the API-vs-browser quota split,
+and no staff response confirms the mechanism; only the symptom is established.
+
 ## Honest limits
 
 Read this before expecting too much.

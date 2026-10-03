@@ -17,6 +17,7 @@ from pathlib import Path
 from videoextend import media
 from videoextend.errors import (
     CancelledError, InvalidVideoError, ProviderError, QuotaExceededError,
+    VideoExtendError,
 )
 from videoextend.pipeline import Cancellation, extend_video
 from videoextend.probe import probe
@@ -420,3 +421,54 @@ class TestOutputNaming(unittest.TestCase):
         stem = _safe_stem("b" * 250 + ".mp4")
         name = f"{stem}_120000_extended_web.mp4"
         self.assertLess(len(name.encode()), 255)
+
+
+# --- guided route (generation done by hand in the browser) -------------------
+
+class TestGuidedRoute(TempCase):
+    def test_starting_frame_is_full_resolution(self):
+        from videoextend.pipeline import starting_frame
+        src = make_test_video(self.tmp / "s.mp4", seconds=4, width=1376, height=928)
+        png = starting_frame(src, self.tmp / "f.png")
+        self.assertTrue(png.exists())
+        self.assertGreater(png.stat().st_size, 1000)
+
+    def test_assembles_user_supplied_clips(self):
+        from videoextend.pipeline import assemble_extension
+        src = make_test_video(self.tmp / "s.mp4", seconds=6, width=1376,
+                              height=928, fps=24, audio=True)
+        c1 = make_test_video(self.tmp / "c1.mp4", seconds=3, width=832, height=480)
+        c2 = make_test_video(self.tmp / "c2.mp4", seconds=3, width=832, height=480)
+
+        out = self.tmp / "out.mp4"
+        result = assemble_extension(src, [c1, c2], output_path=out,
+                                    make_web_version=False)
+        self.assertEqual(result.segments_generated, 2)
+        info = probe(out)
+        # Source resolution and frame rate are preserved, clips are scaled up.
+        self.assertEqual((info.width, info.height), (1376, 928))
+        self.assertAlmostEqual(info.duration, 12.0, delta=1.0)
+        self.assertTrue(info.has_audio)
+
+    def test_assemble_rejects_empty_clip_list(self):
+        from videoextend.pipeline import assemble_extension
+        src = make_test_video(self.tmp / "s.mp4", seconds=2)
+        with self.assertRaises(VideoExtendError):
+            assemble_extension(src, [], output_path=self.tmp / "o.mp4")
+
+    def test_assemble_rejects_bad_clip(self):
+        from videoextend.pipeline import assemble_extension
+        src = make_test_video(self.tmp / "s.mp4", seconds=2)
+        bad = self.tmp / "bad.mp4"
+        bad.write_text("not a video")
+        with self.assertRaises(InvalidVideoError):
+            assemble_extension(src, [bad], output_path=self.tmp / "o.mp4")
+
+    def test_assemble_leaves_original_untouched(self):
+        from videoextend.pipeline import assemble_extension
+        src = make_test_video(self.tmp / "s.mp4", seconds=3)
+        clip = make_test_video(self.tmp / "c.mp4", seconds=2)
+        before = sha256(src)
+        assemble_extension(src, [clip], output_path=self.tmp / "o.mp4",
+                           make_web_version=False)
+        self.assertEqual(sha256(src), before)
