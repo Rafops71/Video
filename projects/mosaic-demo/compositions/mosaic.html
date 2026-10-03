@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Mosaic grid</title>
+  </head>
+  <body>
+    <!--
+      Sub-composition: the tile field.
+      Everything lives inside <template> — the assembler drops <head> styles and
+      scripts for templated sub-compositions.
+    -->
+    <template>
+      <div
+        id="mosaic"
+        data-composition-id="mosaic"
+        data-width="1920"
+        data-height="1080"
+        data-duration="6"
+      >
+        <style>
+          #mosaic {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+          }
+
+          #mosaic-grid {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-columns: repeat(16, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 6px;
+            padding: 60px;
+            box-sizing: border-box;
+          }
+
+          #mosaic .tile {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 4px;
+            opacity: 0;
+          }
+        </style>
+
+        <div id="mosaic-grid"></div>
+
+        <script>
+          (function () {
+            // Seeded PRNG — render-time randomness must be identical on every frame.
+            function makeRandom(seed) {
+              let s = seed >>> 0;
+              return function random() {
+                s = (s * 1664525 + 1013904223) >>> 0;
+                return s / 4294967296;
+              };
+            }
+
+            const COLS = 16;
+            const ROWS = 9;
+            const TINTS = ["#d97757", "#c2694c", "#e08a6f", "#a8a49b", "#cfcac0"];
+
+            const random = makeRandom(20260103);
+            const grid = document.getElementById("mosaic-grid");
+            const tiles = [];
+
+            for (let i = 0; i < COLS * ROWS; i++) {
+              const tile = document.createElement("span");
+              tile.className = "tile";
+              tile.style.background = TINTS[Math.floor(random() * TINTS.length)];
+              grid.appendChild(tile);
+              tiles.push(tile);
+            }
+
+            const tl = gsap.timeline({ paused: true });
+
+            // Bloom in from the centre outward.
+            tl.fromTo(
+              tiles,
+              { opacity: 0, scale: 0.4 },
+              {
+                opacity: 1,
+                scale: 1,
+                duration: 0.5,
+                ease: "power2.out",
+                stagger: { each: 0.004, from: "center", grid: [ROWS, COLS] },
+              },
+              0,
+            );
+
+            // Recede to a sparse field so the title has room to read.
+            tl.to(
+              tiles,
+              {
+                opacity: 0.12,
+                scale: 0.85,
+                duration: 0.6,
+                ease: "power2.inOut",
+                stagger: { each: 0.003, from: "edges", grid: [ROWS, COLS] },
+              },
+              1.5,
+            );
+
+            window.__timelines["mosaic"] = tl;
+          })();
+        </script>
+      </div>
+    </template>
+  </body>
+</html>

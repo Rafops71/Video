@@ -1,0 +1,16 @@
+node_modules/
+
+# Rendered output — regenerate with `npx hyperframes render` (seconds, deterministic).
+renders/
+*.mp4
+*.webm
+*.mov
+
+# HyperFrames working directories
+.hyperframes/
+**/frames/
+**/snapshots/
+**/.render-cache/
+
+*.log
+.DS_Store
