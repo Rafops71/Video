@@ -291,14 +291,28 @@ def _join_and_deliver(
     )
 
 
-def starting_frame(source_path: str | Path, out_png: str | Path) -> Path:
+def starting_frame(source_path: str | Path, out_png: str | Path,
+                   max_pixels: int | None = 480 * 832) -> Path:
     """Write the source's final frame as a PNG.
 
     This is the image to feed an image-to-video model so the continuation
     begins exactly where the source ends.
+
+    By default the frame is shrunk to the free models' own pixel budget and
+    snapped to a multiple of 32. Handing those Spaces a full-resolution still
+    makes them try to generate at that size, which overruns the shared GPU and
+    comes back as "ZeroGPU worker error / RuntimeError". Nothing is lost: the
+    model generates at this size regardless, and the join scales back up.
+    Pass max_pixels=None for the untouched frame.
     """
     src = probe(source_path)
-    return media.last_frame(Path(src.path), out_png, info=src)
+    frame = media.last_frame(Path(src.path), out_png, info=src)
+    if max_pixels is None or src.width * src.height <= max_pixels:
+        return frame
+
+    scale = (max_pixels / (src.width * src.height)) ** 0.5
+    snap = lambda v: max(32, int(round(v * scale / 32)) * 32)  # noqa: E731
+    return media.resize_image(frame, frame, snap(src.width), snap(src.height))
 
 
 def assemble_extension(

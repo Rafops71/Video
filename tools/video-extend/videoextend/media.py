@@ -179,3 +179,17 @@ def verify(path: str | Path, *, expect_seconds: float | None = None,
     _run([_ffmpeg(), "-v", "error", "-i", str(path), "-f", "null", "-"],
          "Checking the finished video", timeout=600)
     return info
+
+
+def resize_image(src: str | Path, out: str | Path, width: int, height: int) -> Path:
+    """Resize a still to exact dimensions, preserving aspect by centre-cropping."""
+    src, out = Path(src), Path(out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    # ffmpeg will not read and write the same path in one pass.
+    tmp = out.with_name(f".{out.stem}_resize{out.suffix}")
+    vf = (f"scale={width}:{height}:force_original_aspect_ratio=increase:flags=lanczos,"
+          f"crop={width}:{height}")
+    _run([_ffmpeg(), "-y", "-v", "error", "-i", str(src), "-vf", vf, str(tmp)],
+         "Resizing the frame", timeout=180)
+    tmp.replace(out)
+    return out

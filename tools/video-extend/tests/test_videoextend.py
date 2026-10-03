@@ -472,3 +472,33 @@ class TestGuidedRoute(TempCase):
         assemble_extension(src, [clip], output_path=self.tmp / "o.mp4",
                            make_web_version=False)
         self.assertEqual(sha256(src), before)
+
+
+class TestStartingFrameSizing(TempCase):
+    """Full-size stills make the free GPU Spaces fail with a RuntimeError."""
+
+    def _dims(self, png):
+        import subprocess
+        out = subprocess.run(
+            ["ffprobe", "-v", "error", "-show_entries", "stream=width,height",
+             "-of", "csv=p=0", str(png)], capture_output=True, text=True).stdout
+        return tuple(int(x) for x in out.strip().split(","))
+
+    def test_large_frame_is_shrunk_to_model_budget(self):
+        from videoextend.pipeline import starting_frame
+        src = make_test_video(self.tmp / "big.mp4", seconds=3, width=1376, height=928)
+        w, h = self._dims(starting_frame(src, self.tmp / "f.png"))
+        self.assertLessEqual(w * h, 480 * 832)
+        self.assertEqual((w % 32, h % 32), (0, 0))
+        self.assertAlmostEqual(w / h, 1376 / 928, delta=0.05)
+
+    def test_small_frame_left_alone(self):
+        from videoextend.pipeline import starting_frame
+        src = make_test_video(self.tmp / "small.mp4", seconds=3, width=640, height=360)
+        self.assertEqual(self._dims(starting_frame(src, self.tmp / "f.png")), (640, 360))
+
+    def test_full_resolution_still_available(self):
+        from videoextend.pipeline import starting_frame
+        src = make_test_video(self.tmp / "big.mp4", seconds=3, width=1376, height=928)
+        w, h = self._dims(starting_frame(src, self.tmp / "f.png", max_pixels=None))
+        self.assertEqual((w, h), (1376, 928))

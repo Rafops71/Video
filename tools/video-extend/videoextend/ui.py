@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import os
 import re
+import subprocess
 import threading
 import time
 import traceback
@@ -127,11 +128,22 @@ def _get_start_frame(video_path):
     except VideoExtendError as exc:
         return f"**Could not read that video.**\n\n{exc}", None
 
+    frame_dims = subprocess.run(
+        ["ffprobe", "-v", "error", "-show_entries", "stream=width,height",
+         "-of", "csv=p=0", str(png)],
+        capture_output=True, text=True,
+    ).stdout.strip().replace(",", "x")
+
     return (
-        f"**Starting frame ready.** Download it, then generate from it.\n\n"
+        f"**Starting frame ready.** Press and hold the picture below to save it.\n\n"
         f"Your clip is **{info.duration:.1f}s** at **{info.width}x{info.height}**. "
-        f"Each generated clip can be up to **3.3 seconds**, so about "
-        f"**{max(1, round(10 / 3.3))} clips** gets you ~10 more seconds.",
+        f"The frame is deliberately given to you at **{frame_dims or 'model size'}**: "
+        f"the free GPUs run out of memory on full-size stills and fail with "
+        f"*\"ZeroGPU worker error\"*. Upload it as-is and **do not raise the "
+        f"resolution** in the Space. Nothing is lost — the model works at this size "
+        f"anyway, and joining scales it back up to yours.\n\n"
+        f"Each generated clip can be up to about **3.3 seconds**, so roughly "
+        f"**3 clips** gets you ~10 more seconds.",
         str(png),
     )
 
