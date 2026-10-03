@@ -224,7 +224,13 @@ def build_app():
                     a_details = gr.Markdown("No video selected yet.")
                     a_frame_btn = gr.Button("GET STARTING FRAME", variant="primary")
                     a_frame_msg = gr.Markdown()
-                    a_frame_file = gr.File(label="Download this frame")
+                    # An Image rather than a File: it renders inline, and on a
+                    # tablet press-and-hold saves it straight to Photos.
+                    a_frame_file = gr.Image(
+                        label="Starting frame — press and hold to save it",
+                        type="filepath",
+                        interactive=False,
+                    )
 
                     gr.Markdown(
                         f"### Step 2 — generate, in your browser\n"
