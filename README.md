@@ -33,6 +33,18 @@ The skills in `.claude/skills/` route the request automatically.
 | `projects/mosaic-demo/` | Reference template — a working, validated composition |
 | `vendor/gsap/` | GSAP 3.14.2, vendored (see *Why vendored* below) |
 | `scripts/new-video.sh` | Scaffolds a project and vendors GSAP into it |
+| `tools/video-extend/` | Separate tool: extend an existing MP4 with an AI continuation |
+
+## Two separate things in this repo
+
+**Making videos from code** (HyperFrames) — everything above.
+
+**Extending an existing video** (`tools/video-extend/`) — takes an MP4 you
+already have and adds an AI-generated continuation, so a 10s clip becomes ~20s
+that plays as one shot. The AI runs on free cloud GPUs, not your machine. Run
+`cd tools/video-extend && ./run.sh`. It is independent of HyperFrames; see
+[its README](tools/video-extend/README.md) for the free-tier limits, which are
+real and worth reading first.
 
 ## A composition in one minute
 

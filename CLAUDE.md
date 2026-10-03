@@ -66,3 +66,23 @@ between seeks produces corrupt output:
 - Not installed: whisper-cpp, Kokoro TTS, MusicGen. Anything needing transcription,
   voiceover, or generated music requires installing those first — say so rather than
   silently routing around it.
+
+## The video-extend tool (separate from HyperFrames)
+
+`tools/video-extend/` extends an existing MP4 with an AI-generated continuation.
+It is independent of HyperFrames — do not merge the two, and do not route
+"extend my video" requests through the `/hyperframes` skill router.
+
+- Python, stdlib + ffmpeg only in the core; `gradio_client` and `gradio` are
+  imported lazily so the tests run without them.
+- The GPU work happens on Hugging Face ZeroGPU Spaces. Nothing AI-related runs
+  locally, and no model weights belong in this repo.
+- Add a cloud backend by subclassing `VideoProvider` and registering it in
+  `providers/__init__.py`. Do not reach into the pipeline from a provider.
+- The numbers in `ProviderInfo` (max segment length, fps, pixel budget) were
+  read from each Space's own source. `test_verified_limits_match_space_source`
+  guards them. If a Space changes, re-read it — do not guess.
+- Never commit user videos, tokens, or `.venv/`.
+- Tests: `cd tools/video-extend && python3 -m unittest discover -s tests -t .`
+  Live cloud tests are opt-in behind `VIDEOEXTEND_LIVE=1` because they spend the
+  user's real daily GPU quota.

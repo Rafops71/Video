@@ -14,3 +14,12 @@ renders/
 
 *.log
 .DS_Store
+
+# video-extend tool
+tools/video-extend/.venv/
+tools/video-extend/**/__pycache__/
+*.pyc
+# User videos must never be committed.
+tools/video-extend/uploads/
+*_extended.mp4
+*_extended_web.mp4

@@ -1,0 +1,4 @@
+# Cloud provider client (calls the Hugging Face Space API). No AI model runs locally.
+gradio_client>=1.3,<3
+# Local web interface.
+gradio>=4.44,<6
