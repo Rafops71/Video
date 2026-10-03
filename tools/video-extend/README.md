@@ -12,12 +12,38 @@ This is a separate tool. It does not touch the HyperFrames projects in this repo
 
 ## How to use it
 
+### Option A — in the cloud, nothing installed on your computer (recommended)
+
+Open the repo on GitHub → green **Code** button → **Codespaces** tab →
+**Create codespace on main**.
+
+It builds itself (a few minutes the first time), installing FFmpeg and
+everything else automatically. When the terminal says `Ready.`, type:
+
+```bash
+./extend-video.sh
+```
+
+A notification offers to open the page in your browser. That's it — your own
+computer never installs anything and never does the work.
+
+GitHub Free includes **120 core-hours per month** of Codespaces, which on the
+smallest machine is about 60 hours. Stop the codespace when you're done
+(**Code → Codespaces → ⋯ → Stop codespace**) so it isn't billing idle time.
+
+### Option B — on your own computer
+
 ```bash
 cd tools/video-extend
 ./run.sh
 ```
 
-First run sets itself up (about a minute), then opens a page in your browser:
+Needs FFmpeg installed first (`brew install ffmpeg` on Mac,
+`sudo apt install ffmpeg` on Linux). On Windows, use Option A instead.
+
+---
+
+Either way, you get a page in your browser:
 
 1. **Choose Video** — pick your MP4
 2. It shows the duration, size and frame rate

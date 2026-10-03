@@ -41,8 +41,11 @@ The skills in `.claude/skills/` route the request automatically.
 
 **Extending an existing video** (`tools/video-extend/`) — takes an MP4 you
 already have and adds an AI-generated continuation, so a 10s clip becomes ~20s
-that plays as one shot. The AI runs on free cloud GPUs, not your machine. Run
-`cd tools/video-extend && ./run.sh`. It is independent of HyperFrames; see
+that plays as one shot. The AI runs on free cloud GPUs, not your machine.
+
+Easiest way, with nothing installed locally: open this repo on GitHub → **Code**
+→ **Codespaces** → **Create codespace**, wait for it to say `Ready.`, then run
+`./extend-video.sh`. It is independent of HyperFrames; see
 [its README](tools/video-extend/README.md) for the free-tier limits, which are
 real and worth reading first.
 

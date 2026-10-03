@@ -175,9 +175,14 @@ def build_app():
 
 def main() -> int:
     app = build_app()
-    app.launch(server_name=os.environ.get("VIDEOEXTEND_HOST", "127.0.0.1"),
-               server_port=int(os.environ.get("VIDEOEXTEND_PORT", "7860")),
-               show_error=True, inbrowser=True)
+    # In a Codespace there is no local browser to open and the server must bind
+    # to 0.0.0.0 so the forwarded port works; both are set via the environment.
+    app.launch(
+        server_name=os.environ.get("VIDEOEXTEND_HOST", "127.0.0.1"),
+        server_port=int(os.environ.get("VIDEOEXTEND_PORT", "7860")),
+        show_error=True,
+        inbrowser=os.environ.get("VIDEOEXTEND_OPEN_BROWSER", "1") != "0",
+    )
     return 0
 
 

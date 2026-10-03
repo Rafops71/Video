@@ -1,0 +1,25 @@
+{
+  "name": "Video — HyperFrames + Extend Video",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "22" }
+  },
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "forwardPorts": [7860],
+  "portsAttributes": {
+    "7860": {
+      "label": "Extend Video",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  "containerEnv": {
+    "VIDEOEXTEND_HOST": "0.0.0.0",
+    "VIDEOEXTEND_OPEN_BROWSER": "0",
+    "PIP_DISABLE_PIP_VERSION_CHECK": "1"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python"]
+    }
+  }
+}
