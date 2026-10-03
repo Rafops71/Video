@@ -396,3 +396,27 @@ class TestErrorClassification(unittest.TestCase):
         result = _classify(RuntimeError("connection reset by peer"))
         self.assertIsInstance(result, ProviderError)
         self.assertNotIsInstance(result, QuotaExceededError)
+
+
+# --- output naming (a real failure: Grok filenames are base64 blobs) ---------
+
+class TestOutputNaming(unittest.TestCase):
+    def test_safe_stem_shortens_and_sanitises(self):
+        from videoextend.ui import _safe_stem
+        long_name = "a" * 300 + ".mp4"
+        self.assertLessEqual(len(_safe_stem(long_name)), 40)
+        self.assertEqual(_safe_stem("my video (final)!.mp4"), "my_video_final")
+        # A name with nothing usable in it still has to yield something.
+        self.assertEqual(_safe_stem("!!!.mp4"), "video")
+        self.assertTrue(_safe_stem(".mp4"))
+
+    def test_safe_stem_keeps_readable_names(self):
+        from videoextend.ui import _safe_stem
+        self.assertEqual(_safe_stem("/tmp/x/Jericho.mp4"), "Jericho")
+
+    def test_long_upload_name_still_produces_usable_output(self):
+        """A 200+ char upload name must not produce an unopenable output path."""
+        from videoextend.ui import _safe_stem
+        stem = _safe_stem("b" * 250 + ".mp4")
+        name = f"{stem}_120000_extended_web.mp4"
+        self.assertLess(len(name.encode()), 255)

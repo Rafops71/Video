@@ -23,3 +23,4 @@ tools/video-extend/**/__pycache__/
 tools/video-extend/uploads/
 *_extended.mp4
 *_extended_web.mp4
+tools/video-extend/outputs/

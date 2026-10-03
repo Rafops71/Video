@@ -8,9 +8,23 @@ normal path stays three clicks.
 from __future__ import annotations
 
 import os
+import re
 import threading
+import time
 import traceback
 from pathlib import Path
+
+# Finished videos go here rather than beside the upload. The upload lives in
+# Gradio's private temp folder, which Gradio will not serve files back out of,
+# and whose name can be hundreds of characters long.
+OUTPUT_DIR = Path(__file__).resolve().parent.parent / "outputs"
+
+
+def _safe_stem(name: str, limit: int = 40) -> str:
+    """Turn an arbitrary upload name into a short, filesystem-safe stem."""
+    stem = Path(name).stem
+    stem = re.sub(r"[^A-Za-z0-9._-]+", "_", stem).strip("._-")
+    return (stem[:limit] or "video")
 
 from .errors import CancelledError, VideoExtendError
 from .pipeline import Cancellation, extend_video
@@ -64,8 +78,11 @@ def _run(video_path, seconds, provider_key, token, prompt, make_web, keep_audio,
             keep_audio=bool(keep_audio),
             progress_cb=on_progress,
             cancellation=cancel,
-            # Output beside the source, never over it.
-            output_path=None,
+            # A short, predictable name in a folder Gradio is allowed to serve.
+            # Timestamped so a second run never overwrites the first.
+            output_path=OUTPUT_DIR / (
+                f"{_safe_stem(video_path)}_{time.strftime('%H%M%S')}_extended.mp4"
+            ),
         )
     except CancelledError:
         return "Cancelled. The original video is untouched.", None, None, None
@@ -174,6 +191,7 @@ def build_app():
 
 
 def main() -> int:
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     app = build_app()
     # In a Codespace there is no local browser to open and the server must bind
     # to 0.0.0.0 so the forwarded port works; both are set via the environment.
@@ -182,6 +200,9 @@ def main() -> int:
         server_port=int(os.environ.get("VIDEOEXTEND_PORT", "7860")),
         show_error=True,
         inbrowser=os.environ.get("VIDEOEXTEND_OPEN_BROWSER", "1") != "0",
+        # Without this Gradio refuses to hand the finished files back to the
+        # browser, and every output box shows an error instead of the video.
+        allowed_paths=[str(OUTPUT_DIR)],
     )
     return 0
 
